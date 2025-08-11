@@ -8,3 +8,20 @@ date: "2025-08-11"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+# import dataset from github
+
+url_data <- 'https://raw.githubusercontent.com/DATA301-Group-2/Project/refs/heads/main/FoodAccessResearchAtlasData2019/FoodAccessResearchAtlasData2019.csv'
+data <- read.csv(url_data)
+head(data)
+```
+
+```{r}
+# check data types
+str(data)
+```
+
+```{r}
+# check summary 
+summary(data)
+```
