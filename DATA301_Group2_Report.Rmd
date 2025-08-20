@@ -6,6 +6,7 @@ date: "2025-08-11"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
 ```
 
 ```{r}
@@ -18,10 +19,70 @@ head(data)
 
 ```{r}
 # check data types
-str(data)
+glimpse(data)
 ```
+
+The data types in the dataset are mostly incorrect.  The binary variables for flagging low-income and low-access tracts are correctly stored as integers, and the State and County categorical variables are correctly stored as characters.  All of the population count and population share variables, however, are stored as characters.  The count variables should be stored as integers and the share variables as doubles.   
 
 ```{r}
 # check summary 
 summary(data)
 ```
+
+We can see from the minimums and maximums of the binary variables, along with the fact that we know they are stored as integers, that the only values present in the data set are in fact 0 and 1.  However, there appear to be a lot of missing values in the data set, so we need to check for NAs and other missing data values. 
+
+```{r}
+colSums(is.na(data))
+``` 
+
+None of the variables have NAs, so it appears that the missing data are all stored as a string, "NULL". 
+
+```{r}
+
+# extract a list of columns with string data
+string_cols <- names(data)[sapply(data, is.character)]
+
+# count the number of "NULL" values per column 
+null_counts <- sapply(data[string_cols], function(x) sum(x == "NULL"))
+print(null_counts)
+
+``` 
+
+Some of the variables have very large proportions of null values, up to 71,025 null values out of 72,531, which leaves only 1,506 data points.  The variables with the highest null values are the 20 mile variables, which we are not using at this point in our project.  Since we are splitting up the data as urban and rural, it is better for us to use the LAPOP1_10 as a response, instead of the lapop1 and lapop10 separately, because there is much less missing data for this .  Since we will have split the data already using the Urban variable, we will know if we are looking at the population for 1 mile if it is an urban area and 10 miles if it is a rural area. There are still a lot of variables at the 10 mile scale that are missing 64,765 values, leaving only 7,766 data points for analysis. First we must convert the string "NULL" values to true NAs, and convert all of the variables to the appropriate data type.
+
+```{r}
+
+# check the string_cols
+string_cols
+
+# extract only the columns that need to be converted to numeric
+numeric_cols <- setdiff(string_cols, c("State", "County"))
+numeric_cols
+
+# isolate the true string variables
+string_cols <- setdiff(string_cols, numeric_cols)
+string_cols
+```
+
+```{r}
+
+# convert data into numeric, simultaneously convert "NULL" to NA
+data[numeric_cols] <- lapply(data[numeric_cols], function(x) {
+  as.numeric(ifelse(x == "NULL", NA, x))
+})
+
+# check data types
+glimpse(data)
+``` 
+
+Now all of the string data types that represented numeric data have been converted into numeric formats.  We can again check the summary statistics to look for outliers. 
+
+
+```{r}
+
+# check summary 
+summary(data)
+
+``` 
+
+One good thing to note is that there are no share variables over 100, which would be an impossible number.  There are, however, quite a lot of 100% maximums, which are a bit suspicious and require further investigating.  It could be the case that in some tracts with very low populations a 100% is possible, but there are a surprising number of them. 
