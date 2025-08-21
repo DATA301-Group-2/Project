@@ -48,7 +48,7 @@ print(null_counts)
 
 ``` 
 
-Some of the variables have very large proportions of null values, up to 71,025 null values out of 72,531, which leaves only 1,506 data points.  The variables with the highest null values are the 20 mile variables, which we are not using at this point in our project.  Since we are splitting up the data as urban and rural, it is better for us to use the LAPOP1_10 as a response, instead of the lapop1 and lapop10 separately, because there is much less missing data for this .  Since we will have split the data already using the Urban variable, we will know if we are looking at the population for 1 mile if it is an urban area and 10 miles if it is a rural area. There are still a lot of variables at the 10 mile scale that are missing 64,765 values, leaving only 7,766 data points for analysis. First we must convert the string "NULL" values to true NAs, and convert all of the variables to the appropriate data type.
+Some of the variables have very large proportions of null values, up to 71,025 null values out of 72,531, which leaves only 1,506 data points.  The variables with the highest null values are the 20 mile variables, which we are not using at this point in our project.  Luckily, our response variable LA1and10 has no missing values. Since we are splitting up the data as urban and rural, it is better for us to use the LAPOP1_10 if we want to look at raw population counts, instead of the lapop1 and lapop10 separately, because there is much less missing data for this variable.  Since we will have split the data already using the Urban variable, we will know if we are looking at the population for 1 mile if it is an urban area and 10 miles if it is a rural area. There are still a lot of variables at the 10 mile scale that are missing 64,765 values, leaving only 7,766 data points for analysis. First we must convert the string "NULL" values to true NAs, and convert all of the variables to the appropriate data type. 
 
 ```{r}
 
@@ -92,32 +92,70 @@ summary(data)
 One good thing to note is that there are no share variables over 100, which would be an impossible number.  There are, however, quite a lot of 100% maximums, which are a bit suspicious and require further investigating.  It could be the case that in some tracts with very low populations a 100% is possible, but there are a surprising number of them. 
 
 ```{r}
-# extract variables with the same number of NAs for further inspection
 na_counts <- colSums(is.na(data))
+na_counts
+``` 
 
-na_vars_4 <- names(na_counts[na_counts == 4])
-na_vars_25 <- names(na_counts[na_counts == 25])
-na_vars_4568 <- names(na_counts[na_counts == 4568])
-na_vars_19989 <- names(na_counts[na_counts == 19989])
-na_vars_64765 <- names(na_counts[na_counts == 64765])
+```{r}
 
-# check the missing rows
-same_na_4 <- data[, na_vars_4]
-na_pattern_4 <- apply(is.na(same_na_4),1,all)
-data_missing_4 <- data[na_pattern_4, ]
-data_missing_4
-
+# check rows missing 4 values
+cols_4NAs <- names(na_counts[na_counts == 4])
+subset_4NAs <- data[, cols_4NAs]
+rows_missing_4 <- apply(is.na(subset_4NAs), 1, all)
+rows_missing_4 <- data[rows_missing_4,]
+rows_missing_4
 
 ``` 
 
 NUMGQT, PCTGQTRS, PovertyRate, MedianFamilyIncome - only 4 missing, three are in the same County, and those are the only three data points for that County.
 
+```{r}
+
+# check rows missing 25 values
+cols_25NAs <- names(na_counts[na_counts == 25])
+subset_25NAs <- data[, cols_25NAs]
+rows_missing_25 <- apply(is.na(subset_25NAs), 1, all)
+rows_missing_25 <- data[rows_missing_25,]
+View(rows_missing_25)
+
+``` 
+
+These 25 rows are also missing NUMGQT and PCTGQTRS, so the rows with four missing values are a subset of these.  They are not all from the same State or County, but quite a few are from Madison County in New York. 
 
 ```{r}
 
-# check the missing rows
-same_na_25 <- data[, na_vars_4]
-na_pattern_25 <- apply(is.na(same_na_4),1,all)
-data_missing_25 <- data[na_pattern_4, ]
-data_missing_25
+# check rows missing 4568 values
+cols_4568NAs <- names(na_counts[na_counts == 4568])
+subset_4568NAs <- data[, cols_4568NAs]
+rows_missing_4568 <- apply(is.na(subset_4568NAs), 1, all)
+rows_missing_4568 <- data[rows_missing_4568,]
+View(rows_missing_4568)
+table(rows_missing_4568$Urban)
+``` 
+
+These 4,568 rows are all missing LAPOP1_10 and LALOWI1_10, which could be problematic if we wanted to look at those variables.  All but one of them are urban tracts, which could affect the results. The other missing variables are all at the 1/2 mile measurements so they are not of concern for the current scope of this project. 
+
+```{r}
+# check rows missing 19989 values
+cols_19989NAs <- names(na_counts[na_counts == 19989])
+subset_19989NAs <- data[, cols_19989NAs]
+rows_missing_19989 <- apply(is.na(subset_19989NAs), 1, all)
+rows_missing_19989 <- data[rows_missing_19989,]
+View(rows_missing_19989)
+table(rows_missing_19989$Urban)
 ```
+
+
+These 19,989 rows are also missing LAPOP1_10 and LALOWI1_10, and they are also almost exclusively urban. In addition, they are missing a lot of our variables of interest.  
+
+```{r}
+# check rows missing 64765 values
+cols_64765NAs <- names(na_counts[na_counts == 64765])
+subset_64765NAs <- data[, cols_64765NAs]
+rows_missing_64765 <- apply(is.na(subset_64765NAs), 1, all)
+rows_missing_64765 <- data[rows_missing_64765,]
+View(rows_missing_64765)
+table(rows_missing_64765$Urban)
+```
+
+There are 64,765 rows that are missing lalowi10, lalowi10share, lakids10, lakids10share, laseniors10, laseniors10share, lawhite10, lawhite10share, lablack10, lablack10share, laasian10, laasian10share, lanhopi10, lahopi10share, laaian10.  They are also disproportionately urban data points. This is potentially problematic depending on the direction we want to go. Luckily the raw population numbers are not missing, just the low-access population numbers.  
