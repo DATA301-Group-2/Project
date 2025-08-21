@@ -159,3 +159,63 @@ table(rows_missing_64765$Urban)
 ```
 
 There are 64,765 rows that are missing lalowi10, lalowi10share, lakids10, lakids10share, laseniors10, laseniors10share, lawhite10, lawhite10share, lablack10, lablack10share, laasian10, laasian10share, lanhopi10, lahopi10share, laaian10.  They are also disproportionately urban data points. This is potentially problematic depending on the direction we want to go. Luckily the raw population numbers are not missing, just the low-access population numbers.  
+
+
+
+Check univariate plots for distributions
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+data_clean <- data %>%
+  mutate(
+    LAPOP1_10 = as.numeric(LAPOP1_10),
+    Urban = as.numeric(Urban),
+    Pop2010 = as.numeric(Pop2010),
+    Rural = Pop2010 - Urban,                # derive rural population
+    TractKids = as.numeric(TractKids),      # under 18
+    TractSeniors = as.numeric(TractSeniors) # 65+
+  )
+
+### Distribution of LAPOP1_10 (response variable)
+ggplot(data_clean, aes(x = LAPOP1_10)) +
+  geom_histogram(bins = 30, fill = "steelblue", color = "white", alpha = 0.7) +
+  geom_density(aes(y = ..count..), color = "red", linewidth = 1) +
+  theme_minimal() +
+  labs(title = "Distribution of LAPOP1_10", x = "LAPOP1_10", y = "Count")
+
+ggplot(data_clean, aes(x = factor(Urban))) +
+  geom_bar(fill = "orange", alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Distribution of Urban Population", x = "Urban", y = "Count")
+
+### Distribution of Rural population
+ggplot(data_clean, aes(x = Rural)) +
+  geom_histogram(bins = 30, fill = "sienna", color = "white", alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Distribution of Rural Population", x = "Rural", y = "Count")
+
+### Distribution of Age groups (Kids and Seniors)
+ggplot(data_clean, aes(x = TractKids)) +
+  geom_histogram(bins = 30, fill = "purple", color = "white", alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Distribution of Children (<18)", x = "TractKids", y = "Count")
+
+ggplot(data_clean, aes(x = TractSeniors)) +
+  geom_histogram(bins = 30, fill = "orange", color = "white", alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Distribution of Seniors (65+)", x = "TractSeniors", y = "Count")
+```
+
+```{r}
+ggplot(data_clean, aes(y = LAPOP1_10)) +
+  geom_boxplot(fill = "skyblue") +
+  theme_minimal() +
+  labs(title = "Boxplot of LAPOP1_10", y = "LAPOP1_10")
+
+ggplot(data_clean, aes(x = factor(LowIncomeTracts))) +
+  geom_bar(fill = "orange", alpha = 0.7) +
+  theme_minimal() +
+  labs(title = "Distribution of Low Income Tracts", x = "LowIncomeTracts (0/1)", y = "Count")
+```
