@@ -161,6 +161,160 @@ table(rows_missing_64765$Urban)
 There are 64,765 rows that are missing lalowi10, lalowi10share, lakids10, lakids10share, laseniors10, laseniors10share, lawhite10, lawhite10share, lablack10, lablack10share, laasian10, laasian10share, lanhopi10, lahopi10share, laaian10.  They are also disproportionately urban data points. This is potentially problematic depending on the direction we want to go. Luckily the raw population numbers are not missing, just the low-access population numbers.  
 
 
+Summary Statistics
+```{r}
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(knitr)
+library(kableExtra)
+
+
+use_mode <- function(x) {
+  ux <- na.omit(unique(x))
+  ux[which.max(tabulate(match(x, ux)))]
+}
+```
+
+
+```{r}
+
+#urban vs rural
+data_clean %>%
+  group_by(Area = ifelse(Urban == 1, "Urban", "Rural")) %>%
+  summarise(
+    n_tracts   = n(),
+    mean_p   = round(mean(lapop1share, na.rm = TRUE), 2),
+    median_p = round(median(lapop1share, na.rm = TRUE), 2),
+    sd_p   = round(sd(lapop1share, na.rm = TRUE), 2),
+    .groups = "drop"
+  ) %>%
+  kable(caption = "Urban vs Rural – Low-access population ", align = "c") %>%
+  kable_styling(full_width = TRUE, position = "center")
+
+```
+
+
+```{r}
+
+#income
+data_clean %>%
+  group_by(Area = ifelse(Urban == 1, "Urban", "Rural")) %>%
+  summarise(
+    n_tracts   = n(),
+    mean_incm   = round(mean(LowIncomeTracts, na.rm = TRUE) * 100, 2),
+
+    sd_incm    = round(sd(LowIncomeTracts, na.rm = TRUE) * 100, 2),
+    .groups = "drop"
+  ) %>%
+  kable(caption = "Urban vs Rural – Low-income tracts (%)", align = "c") %>%
+  kable_styling(full_width = TRUE, position = "center")
+
+```
+
+
+
+
+
+```{r}
+# low access - children
+data_clean %>%
+  group_by(Area = ifelse(Urban == 1, "Urban", "Rural")) %>%
+  summarise(
+    n_tracts   = n(),
+    mean_ch   = round(mean(lakids1share, na.rm = TRUE), 2),
+    median_ch = round(median(lakids1share, na.rm = TRUE), 2),
+    sd_ch   = round(sd(lakids1share, na.rm = TRUE), 2),
+    max_ch    = round(max(lakids1share, na.rm = TRUE), 2),
+    .groups = "drop"
+  ) %>%
+  kable(caption = "Urban vs Rural  Low-access children ") %>%
+  kable_styling(full_width = TRUE, position = "center")
+
+```
+
+
+
+```{r}
+
+#seniors
+data_clean %>%
+  group_by(Area = ifelse(Urban == 1, "Urban", "Rural")) %>%
+  summarise(
+    n_tracts   = n(),
+    mean_snrs   = round(mean(laseniors1share, na.rm = TRUE), 2),
+    median_snrs = round(median(laseniors1share, na.rm = TRUE), 2),
+    sd_snrs    = round(sd(laseniors1share, na.rm = TRUE), 2),
+    max_snrs    = round(max(laseniors1share, na.rm = TRUE), 2),
+    .groups = "drop"
+  ) %>%
+  kable(caption = "Urban vs Rural – Low-access seniors", align = "c") %>%
+  kable_styling(full_width = TRUE, position = "center")
+
+```
+
+
+```{r}
+
+#poverty rate
+data_clean %>%
+  group_by(Area = ifelse(Urban == 1, "Urban", "Rural")) %>%
+  summarise(
+    n_tracts   = n(),
+    mean_pr   = round(mean(PovertyRate, na.rm = TRUE), 2),
+    median_pr = round(median(PovertyRate, na.rm = TRUE), 2),
+    sd_pr    = round(sd(PovertyRate, na.rm = TRUE), 2),
+    mode_pr   = round(use_mode(PovertyRate), 2),
+    .groups = "drop"
+  ) %>%
+  kable(caption = "Urban vs Rural – Poverty rate ", align = "c") %>%
+  kable_styling(full_width = TRUE, position = "center")
+```
+
+
+
+```{r}
+
+#vehicle access
+data_clean %>%
+  group_by(Area = ifelse(Urban == 1, "Urban", "Rural")) %>%
+  summarise(
+    n_tracts   = n(),
+    mean_h   = round(mean(lahunv1share, na.rm = TRUE), 2),
+    median_h = round(median(lahunv1share, na.rm = TRUE), 2),
+    sd_h     = round(sd(lahunv1share, na.rm = TRUE), 2),
+    max_h    = round(max(lahunv1share, na.rm = TRUE), 2),
+    .groups = "drop"
+  ) %>%
+  kable(caption = "Urban vs Rural Households without vehicles ", align = "c") %>%
+  kable_styling(full_width = TRUE, position = "center")
+```
+
+
+
+```{r}
+
+#correlation key variables
+vars <- data_clean %>%
+  select(
+    `Poverty Rate (%)` = PovertyRate,
+    `Median Family Income (USD)` = MedianFamilyIncome,
+    `Low-access Population (Proportion)` = lapop1share,
+    `Low-access Children (Proportion)` = lakids1share,
+    `Low-access Seniors (Proportion)` = laseniors1share,
+    `No Vehicle Households (Proportion)` = lahunv1share
+  )
+
+
+cor_matrix <- round(cor(vars, use = "pairwise.complete.obs", method = "spearman"), 2)
+
+
+knitr::kable(cor_matrix, caption = "Correlation Matrix of Key Variables") %>%
+  kable_styling(full_width = FALSE, position = "center")
+```
+
+
+
 
 Check univariate plots for distributions
 
@@ -218,4 +372,8 @@ ggplot(data_clean, aes(x = factor(LowIncomeTracts))) +
   geom_bar(fill = "orange", alpha = 0.7) +
   theme_minimal() +
   labs(title = "Distribution of Low Income Tracts", x = "LowIncomeTracts (0/1)", y = "Count")
+
 ```
+
+
+
