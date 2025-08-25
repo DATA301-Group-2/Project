@@ -427,16 +427,25 @@ ggplot(plot_df, aes(long, lat, group = group, fill = lowaccess)) +
 
 #Median Family Income
 ggplot(data, aes(x = MedianFamilyIncome, y = lapop1share)) +
-  geom_point(alpha = 0.4, color = "purple") +
+  geom_point(alpha = 0.4, color = "orange") +
   facet_wrap(~ ifelse(Urban == 1, "Urban", "Rural")) +
   labs(title = " Median Income in low Access urban vs rural areas ",
        x = "Median Family Income (USD)", y = "Low Access(%)") +
   theme_minimal()
 ```
 
-
+Regression
 ```{r}
 
+#poverty regression
+ggplot(data, aes(x = PovertyRate, y = lapop1share)) +
+  geom_point(alpha = 0.4, color = "steelblue") +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  facet_wrap(~ ifelse(Urban == 1, "Urban", "Rural")) +
+  labs(title = "Poverty Rate vs Low Access Population by Area ",
+       x = "Poverty Rate (%)",
+       y = "% Low-Access Population") +
+  theme_minimal()
 ```
 
 
