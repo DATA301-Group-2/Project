@@ -180,7 +180,7 @@ use_mode <- function(x) {
 ```{r}
 
 #urban vs rural
-data_clean %>%
+data %>%
   group_by(Area = ifelse(Urban == 1, "Urban", "Rural")) %>%
   summarise(
     n_tracts   = n(),
@@ -198,7 +198,7 @@ data_clean %>%
 ```{r}
 
 #income
-data_clean %>%
+data %>%
   group_by(Area = ifelse(Urban == 1, "Urban", "Rural")) %>%
   summarise(
     n_tracts   = n(),
@@ -218,7 +218,7 @@ data_clean %>%
 
 ```{r}
 # low access - children
-data_clean %>%
+data %>%
   group_by(Area = ifelse(Urban == 1, "Urban", "Rural")) %>%
   summarise(
     n_tracts   = n(),
@@ -238,7 +238,7 @@ data_clean %>%
 ```{r}
 
 #seniors
-data_clean %>%
+data %>%
   group_by(Area = ifelse(Urban == 1, "Urban", "Rural")) %>%
   summarise(
     n_tracts   = n(),
@@ -257,7 +257,7 @@ data_clean %>%
 ```{r}
 
 #poverty rate
-data_clean %>%
+data %>%
   group_by(Area = ifelse(Urban == 1, "Urban", "Rural")) %>%
   summarise(
     n_tracts   = n(),
@@ -276,7 +276,7 @@ data_clean %>%
 ```{r}
 
 #vehicle access
-data_clean %>%
+data %>%
   group_by(Area = ifelse(Urban == 1, "Urban", "Rural")) %>%
   summarise(
     n_tracts   = n(),
@@ -295,14 +295,14 @@ data_clean %>%
 ```{r}
 
 #correlation key variables
-vars <- data_clean %>%
+vars <- data %>%
   select(
     `Poverty Rate (%)` = PovertyRate,
     `Median Family Income (USD)` = MedianFamilyIncome,
-    `Low-access Population (Proportion)` = lapop1share,
-    `Low-access Children (Proportion)` = lakids1share,
-    `Low-access Seniors (Proportion)` = laseniors1share,
-    `No Vehicle Households (Proportion)` = lahunv1share
+    `Low-access Population ` = lapop1share,
+    `Low-access Children ` = lakids1share,
+    `Low-access Seniors ` = laseniors1share,
+    `No Vehicle Households ` = lahunv1share
   )
 
 
@@ -375,5 +375,33 @@ ggplot(data_clean, aes(x = factor(LowIncomeTracts))) +
 
 ```
 
+
+Plots 
+
+```{r}
+
+#Plots: age groups (children, seniors) urban vs rural
+
+# children
+ggplot(data_clean, aes(x = ifelse(Urban == 1, "Urban", "Rural"),
+                       y = lakids1share)) +
+  geom_boxplot(fill = "brown") +
+  labs(title = "Children with Low Access Urban vs Rural",
+       x = "Area", y = "children with low access (%)")
+
+# seniors
+ggplot(data_clean, aes(x = ifelse(Urban == 1, "Urban", "Rural"),
+                       y = laseniors1share)) +
+  geom_boxplot(fill = "navy") +
+  labs(title = "Seniors with Low Access Urban vs Rural)",
+       x = "Area", y = "seniors with low access (%)")
+
+
+```
+
+
+```{r}
+
+```
 
 
