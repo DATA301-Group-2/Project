@@ -428,6 +428,15 @@ ggplot(plot_df, aes(long, lat, group = group, fill = lowaccess)) +
   theme_void()
 ```
 
+```{r}
+# group quarters urban vs rural
+
+ggplot(data, aes(x = ifelse(Urban == 1, "Urban", "Rural"),
+                       y = PCTGQTRS)) +
+  geom_boxplot(fill = "purple") +
+  labs(title = "Group Quarters Low Access in Urban vs Rural",
+       x = "Area", y = "Group Quarters (%)")
+```
 
 ```{r}
 
