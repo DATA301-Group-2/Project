@@ -116,7 +116,6 @@ cols_25NAs <- names(na_counts[na_counts == 25])
 subset_25NAs <- data[, cols_25NAs]
 rows_missing_25 <- apply(is.na(subset_25NAs), 1, all)
 rows_missing_25 <- data[rows_missing_25,]
-View(rows_missing_25)
 
 ``` 
 
@@ -129,7 +128,6 @@ cols_4568NAs <- names(na_counts[na_counts == 4568])
 subset_4568NAs <- data[, cols_4568NAs]
 rows_missing_4568 <- apply(is.na(subset_4568NAs), 1, all)
 rows_missing_4568 <- data[rows_missing_4568,]
-View(rows_missing_4568)
 table(rows_missing_4568$Urban)
 ``` 
 
@@ -141,7 +139,6 @@ cols_19989NAs <- names(na_counts[na_counts == 19989])
 subset_19989NAs <- data[, cols_19989NAs]
 rows_missing_19989 <- apply(is.na(subset_19989NAs), 1, all)
 rows_missing_19989 <- data[rows_missing_19989,]
-View(rows_missing_19989)
 table(rows_missing_19989$Urban)
 ```
 
@@ -154,7 +151,6 @@ cols_64765NAs <- names(na_counts[na_counts == 64765])
 subset_64765NAs <- data[, cols_64765NAs]
 rows_missing_64765 <- apply(is.na(subset_64765NAs), 1, all)
 rows_missing_64765 <- data[rows_missing_64765,]
-View(rows_missing_64765)
 table(rows_missing_64765$Urban)
 ```
 
@@ -322,7 +318,7 @@ Check univariate plots for distributions
 library(ggplot2)
 library(dplyr)
 
-data_clean <- data %>%
+data <- data %>%
   mutate(
     LAPOP1_10 = as.numeric(LAPOP1_10),
     Urban = as.numeric(Urban),
@@ -333,42 +329,42 @@ data_clean <- data %>%
   )
 
 ### Distribution of LAPOP1_10 (response variable)
-ggplot(data_clean, aes(x = LAPOP1_10)) +
+ggplot(data, aes(x = LAPOP1_10)) +
   geom_histogram(bins = 30, fill = "steelblue", color = "white", alpha = 0.7) +
   geom_density(aes(y = ..count..), color = "red", linewidth = 1) +
   theme_minimal() +
   labs(title = "Distribution of LAPOP1_10", x = "LAPOP1_10", y = "Count")
 
-ggplot(data_clean, aes(x = factor(Urban))) +
+ggplot(data, aes(x = factor(Urban))) +
   geom_bar(fill = "orange", alpha = 0.7) +
   theme_minimal() +
   labs(title = "Distribution of Urban Population", x = "Urban", y = "Count")
 
 ### Distribution of Rural population
-ggplot(data_clean, aes(x = Rural)) +
+ggplot(data, aes(x = Rural)) +
   geom_histogram(bins = 30, fill = "sienna", color = "white", alpha = 0.7) +
   theme_minimal() +
   labs(title = "Distribution of Rural Population", x = "Rural", y = "Count")
 
 ### Distribution of Age groups (Kids and Seniors)
-ggplot(data_clean, aes(x = TractKids)) +
+ggplot(data, aes(x = TractKids)) +
   geom_histogram(bins = 30, fill = "purple", color = "white", alpha = 0.7) +
   theme_minimal() +
   labs(title = "Distribution of Children (<18)", x = "TractKids", y = "Count")
 
-ggplot(data_clean, aes(x = TractSeniors)) +
+ggplot(data, aes(x = TractSeniors)) +
   geom_histogram(bins = 30, fill = "orange", color = "white", alpha = 0.7) +
   theme_minimal() +
   labs(title = "Distribution of Seniors (65+)", x = "TractSeniors", y = "Count")
 ```
 
 ```{r}
-ggplot(data_clean, aes(y = LAPOP1_10)) +
+ggplot(data, aes(y = LAPOP1_10)) +
   geom_boxplot(fill = "skyblue") +
   theme_minimal() +
   labs(title = "Boxplot of LAPOP1_10", y = "LAPOP1_10")
 
-ggplot(data_clean, aes(x = factor(LowIncomeTracts))) +
+ggplot(data, aes(x = factor(LowIncomeTracts))) +
   geom_bar(fill = "orange", alpha = 0.7) +
   theme_minimal() +
   labs(title = "Distribution of Low Income Tracts", x = "LowIncomeTracts (0/1)", y = "Count")
@@ -383,20 +379,30 @@ Plots
 #age groups (children, seniors) urban vs rural
 
 # children
-ggplot(data_clean, aes(x = ifelse(Urban == 1, "Urban", "Rural"),
+ggplot(data, aes(x = ifelse(Urban == 1, "Urban", "Rural"),
                        y = lakids1share)) +
   geom_boxplot(fill = "brown") +
   labs(title = "Children with Low Access Urban vs Rural",
        x = "Area", y = "children with low access (%)")
 
 # seniors
-ggplot(data_clean, aes(x = ifelse(Urban == 1, "Urban", "Rural"),
+ggplot(data, aes(x = ifelse(Urban == 1, "Urban", "Rural"),
                        y = laseniors1share)) +
   geom_boxplot(fill = "navy") +
   labs(title = "Seniors with Low Access Urban vs Rural)",
        x = "Area", y = "seniors with low access (%)")
 
 
+```
+
+```{r}
+# vehicle access urban vs rural
+
+ggplot(data, aes(x = ifelse(Urban == 1, "Urban", "Rural"),
+                       y = lahunv1share)) +
+  geom_boxplot(fill = "blue") +
+  labs(title = "Vehicle Access in Urban vs Rural",
+       x = "Area", y = "Vehicle Access (%)")
 ```
 
 
@@ -433,6 +439,18 @@ ggplot(data, aes(x = MedianFamilyIncome, y = lapop1share)) +
        x = "Median Family Income (USD)", y = "Low Access(%)") +
   theme_minimal()
 ```
+
+```{r}
+# low income urban vs rural
+
+ggplot(data, aes(x = ifelse(Urban == 1, "Urban", "Rural"),
+                       y = lalowi1share)) +
+  geom_boxplot(fill = "pink") +
+  labs(title = "Low Income and Low Access in Urban vs Rural",
+       x = "Area", y = "Low Income (%)")
+```
+
+
 
 Regression
 ```{r}
