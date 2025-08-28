@@ -488,3 +488,165 @@ ggplot(data, aes(x = MedianFamilyIncome, y = lapop1share)) +
   theme_minimal()
 ```
 
+```{r}
+# variable with the codes for the races
+race_vars <- c("White", "Black", "Asian", "NHOPI", "AIAN", "OMultir", "Hispanic")
+
+# loop over the races
+for(race in race_vars) {
+  
+  race_col <- paste0("Tract", race)  
+  
+  # make a df for plotting, with the population percentage of each race
+  plot_df <- data %>%
+    mutate(
+      pct_race = 100 * !!sym(race_col) / Pop2010,
+      Area = ifelse(Urban == 1, "Urban", "Rural")
+    )
+  
+  p <- ggplot(plot_df, aes(x = pct_race, fill = Area)) +
+    geom_histogram(aes(y = ..count../sum(..count..)*100), 
+                   alpha = 0.7, bins = 20, position = "identity") +
+    facet_wrap(~Area, ncol = 1) +
+    scale_fill_manual(values = c("Urban" = "#1f78b4", "Rural" = "#33a02c")) +
+    labs(
+      title = paste0("Distribution of % ", race, " Population by Census Tract"),
+      x = paste0("Percentage of ", race, " Population"),
+      y = "Percentage of Tracts"
+    ) +
+    theme_minimal(base_size = 14)
+  
+  print(p)  
+}
+```
+
+```{r}
+# calculate lashare
+data <- data %>%
+  mutate(
+    lashare = 100 * LAPOP1_10 / Pop2010,
+    Area = ifelse(Urban == 1, "Urban", "Rural")
+  )
+
+# loop over each race
+for(race in race_vars) {
+  
+  # column for percentage of race in each tract
+  race_col <- paste0("Tract", race)
+  pct_col <- paste0("pct_", race)
+  
+  # calculate percentage 
+  data <- data %>%
+    mutate(!!pct_col := 100 * !!sym(race_col) / Pop2010)
+  
+  # create scatterplot with regression line
+  p <- ggplot(data, aes_string(x = pct_col, y = "lashare", color = "Area")) +
+    geom_point(alpha = 0.3) +                   
+    geom_smooth(method = "lm", se = TRUE, color = "black") +  
+    facet_wrap(~Area) +
+    labs(
+      title = paste0("Percentage Low-Access vs % ", race, " Population"),
+      x = paste0("% ", race, " Population"),
+      y = "% Low-Access Population"
+    ) +
+    scale_color_manual(values = c("Urban" = "#1f78b4", "Rural" = "#33a02c")) +
+    theme_minimal(base_size = 14)
+  
+  print(p)  
+}
+```
+
+```{r}
+# calculate % of households receiving SNAP benefits
+snap_df <- data %>%
+  mutate(
+    pct_snap = 100 * TractSNAP / OHU2010,   
+    Area = ifelse(Urban == 1, "Urban", "Rural")
+  )
+
+# plot histogram with x-axis limited to 0–100%
+ggplot(snap_df, aes(x = pct_snap, fill = Area)) +
+  geom_histogram(aes(y = ..count../sum(..count..)*100),  
+                 bins = 30, alpha = 0.6, color = "white", position = "identity") +
+  facet_wrap(~Area, ncol = 1) +                          
+  scale_fill_manual(values = c("Urban" = "#1f78b4", "Rural" = "#33a02c")) +
+  labs(
+    title = "Distribution of % of Households Receiving SNAP Benefits by Census Tract",
+    x = "Percentage of Households Receiving SNAP Benefits",
+    y = "Percentage of Tracts"
+  ) +
+  coord_cartesian(xlim = c(0, 100)) +                  
+  theme_minimal(base_size = 14)
+```
+
+
+```{r}
+
+lasnapdf <- data %>%
+  filter(OHU2010 > 0, Pop2010 > 0) %>%  
+  mutate(
+    snapshare = 100 * TractSNAP / OHU2010,
+    lashare = 100 * LAPOP1_10 / Pop2010,
+    # cap percentages at 100%
+    snapshare = ifelse(snapshare > 100, 100, snapshare),
+    lashare = ifelse(lashare > 100, 100, lashare),
+    Area = ifelse(Urban == 1, "Urban", "Rural")
+  )
+
+# scatterplots
+ggplot(lasnapdf, aes(x = pct_snap, y = lashare)) +
+  geom_point(alpha = 0.4, color = "#1f78b4") +     
+  geom_smooth(method = "lm", color = "black", se = TRUE) +  
+  facet_wrap(~Area) +                                
+  labs(
+    title = "Low-Access Population vs Households Receiving SNAP Benefits",
+    x = "Percentage of Households Receiving SNAP Benefits",
+    y = "Percentage of Population Low Access"
+  ) +
+  coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +  
+  theme_minimal(base_size = 14)
+```
+
+```{r}
+poverty_df <- data %>%
+  filter(!is.na(PovertyRate)) %>%             
+  mutate(
+    Area = ifelse(Urban == 1, "Urban", "Rural")
+  )
+
+ggplot(poverty_df, aes(x = PovertyRate, fill = Area)) +
+  geom_histogram(aes(y = ..count../sum(..count..)*100),  
+                 bins = 30, alpha = 0.6, color = "white", position = "identity") +
+  facet_wrap(~Area, ncol = 1) +                          
+  scale_fill_manual(values = c("Urban" = "#1f78b4", "Rural" = "#33a02c")) +
+  labs(
+    title = "Distribution of Poverty Rate by Census Tract",
+    x = "Poverty Rate (%)",
+    y = "Percentage of Tracts"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+```{r}
+lapovertydf <- data %>%
+  filter(!is.na(PovertyRate), Pop2010 > 0, !is.na(LAPOP1_10)) %>%
+  mutate(
+    pct_lowaccess = 100 * LAPOP1_10 / Pop2010,   
+    Area = ifelse(Urban == 1, "Urban", "Rural")
+  ) %>%
+  filter(pct_lowaccess <= 100)  
+
+ggplot(lapovertydf, aes(x = pct_lowaccess, y = PovertyRate)) +
+  geom_point(alpha = 0.4, color = "#1f78b4") +   
+  geom_smooth(method = "lm", color = "black", se = TRUE) +  
+  facet_wrap(~Area) +                             
+  labs(
+    title = "Poverty Rate vs Low-Access Population by Census Tract",
+    x = "Percentage of Population Low Access",
+    y = "Poverty Rate (%)"
+  ) +
+  coord_cartesian(xlim = c(0, 100), ylim = c(0, 100)) +  
+  theme_minimal(base_size = 14)
+
+```
+
