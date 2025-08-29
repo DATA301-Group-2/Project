@@ -624,18 +624,24 @@ ggplot(plot_snap, aes(x = pct_snap, y = lashare)) +
 
 
 ```{r}
+library(RColorBrewer)
+
+# custom gradient for 10 bins
+my_palette <- c(
+  "#FED976", "#FDC04B", "#FC9B2C", "#F67816", "#E25A0F",
+  "#C63C09", "#9D2604", "#7B1803", "#580C01", "#3C0500"
+)
+
 # remove NAs and bin PovertyRate into 5% bins
 poverty_df <- data %>%
   filter(!is.na(PovertyRate)) %>%
   mutate(
     Area = ifelse(Urban == 1, "Urban", "Rural"),
     PovertyBin = cut(PovertyRate,
-                     breaks = seq(0, 100, by = 5),
+                     breaks = seq(0, 50, by = 5),
                      include.lowest = TRUE,
                      right = FALSE)
-  ) %>%
-  # only include up to 55-60% because that was the max
-  filter(as.numeric(PovertyBin) <= 12)  
+  )  
 
 # calculate percentages by urban vs rural
 summary_poverty <- poverty_df %>%
@@ -644,7 +650,6 @@ summary_poverty <- poverty_df %>%
   group_by(Area) %>%
   mutate(
     pct = 100 * n_tracts / sum(n_tracts),
-    # convert factor bin to numeric midpoint for smoothing
     BinMid = as.numeric(sub("\\[(\\d+),.*", "\\1", PovertyBin)) + 2.5
   )
 
@@ -652,8 +657,8 @@ summary_poverty <- poverty_df %>%
 ggplot(summary_poverty, aes(x = BinMid, y = pct, fill = PovertyBin)) +
   geom_col(alpha = 0.8) +
   facet_wrap(~Area, ncol = 2) +
-  scale_fill_brewer(palette = "YlOrRd") +
-  scale_x_continuous(breaks = seq(0, 60, by = 5), limits = c(0, 60)) +
+  scale_fill_manual(values = my_palette) +
+  scale_x_continuous(breaks = seq(0, 50, by = 5), limits = c(0, 50)) +
   labs(
     title = "Distribution of Poverty Rate by Urban vs Rural Areas",
     x = "Poverty Rate (%)",
